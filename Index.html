@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation Ask Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #141416;
+            --bg-tertiary: #1c1c1f;
+            --text-primary: #f5f5f7;
+            --text-secondary: #8e8e93;
+            --text-muted: #636366;
+            --accent: #34c759;
+            --accent-dim: rgba(52, 199, 89, 0.15);
+            --accent-blue: #0a84ff;
+            --accent-blue-dim: rgba(10, 132, 255, 0.15);
+            --warning: #ff9f0a;
+            --warning-dim: rgba(255, 159, 10, 0.15);
+            --danger: #ff453a;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-light: rgba(255, 255, 255, 0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        header {
+            padding: 30px 0 24px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .goals-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .goals-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: background 0.2s;
+        }
+
+        .goals-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .goals-arrow {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+        }
+
+        .goals-arrow.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .goals-content {
+            padding: 0 20px 20px;
+            display: block;
+        }
+
+        .goals-content.hidden {
+            display: none;
+        }
+
+        .goal-item {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .goal-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .goal-number {
+            width: 28px;
+            height: 28px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .goal-text strong {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .goal-text p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .stat-value.blue {
+            color: var(--accent-blue);
+        }
+
+        .stat-value.warning {
+            color: var(--warning);
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 4px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .tab.active {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .form-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .form-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 16px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button-group.vertical {
+            flex-direction: column;
+        }
+
+        .option-btn {
+            flex: 1;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .option-btn.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .option-btn.selected-blue {
+            background: var(--accent-blue-dim);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .option-btn.selected-warning {
+            background: rgba(255, 159, 10, 0.15);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .option-btn.selected-danger {
+            background: rgba(255, 69, 58, 0.15);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover {
+            background: #2db850;
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .call-log {
+            margin-top: 20px;
+        }
+
+        .call-entry {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+        }
+
+        .call-entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .call-entry-type {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .call-entry-date {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .call-entry-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .call-entry-result {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .call-entry-result.asked {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        .call-entry-result.not-asked {
+            background: rgba(255, 159, 10, 0.15);
+            color: var(--warning);
+        }
+
+        .call-entry-result.not-appropriate {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .call-entry-result.got-eval {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .call-entry-result.value-given {
+            background: var(--accent-blue-dim);
+            color: var(--accent-blue);
+        }
+
+        .call-entry-result.no-value {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+        }
+
+        .call-entry-notes {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .delete-btn:hover {
+            opacity: 1;
+            color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .insights-section {
+            margin-top: 20px;
+        }
+
+        .insight-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+
+        .insight-card.highlight {
+            border-color: var(--accent-blue);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(10, 132, 255, 0.05) 100%);
+        }
+
+        .insight-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+        }
+
+        .insight-list {
+            list-style: none;
+        }
+
+        .insight-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.9rem;
+        }
+
+        .insight-list li:last-child {
+            border-bottom: none;
+        }
+
+        .insight-count {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+        }
+
+        .insight-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .comparison-item {
+            text-align: center;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        .comparison-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .comparison-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .comparison-value.blue {
+            color: var(--accent-blue);
+        }
+
+        .comparison-value.muted {
+            color: var(--text-muted);
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--danger);
+            border-radius: 10px;
+            color: var(--danger);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-top: 30px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .reset-btn:hover {
+            opacity: 1;
+        }
+
+        .form-row {
+            margin-bottom: 16px;
+        }
+
+        .form-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .property-input {
+            margin-bottom: 16px;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 24px 0;
+        }
+
+        .section-header {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        @media (max-width: 400px) {
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            .stat-card {
+                padding: 12px 8px;
+            }
+            
+            .stat-value {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Asset Evaluation Tracker</h1>
+            <p class="subtitle">Measure. Improve. Convert.</p>
+        </header>
+        
+        <div class="goals-section" id="goalsSection">
+            <div class="goals-toggle" onclick="toggleGoals()">
+                <span>Program Objectives</span>
+                <span class="goals-arrow" id="goalsArrow">▼</span>
+            </div>
+            <div class="goals-content" id="goalsContent">
+                <div class="goal-item">
+                    <div class="goal-number">1</div>
+                    <div class="goal-text">
+                        <strong>Increase Evaluation Ask Rate</strong>
+                        <p>Track and improve the percentage of qualified conversations where an asset evaluation is requested</p>
+                    </div>
+                </div>
+                <div class="goal-item">
+                    <div class="goal-number">2</div>
+                    <div class="goal-text">
+                        <strong>Identify Conversion Blockers</strong>
+                        <p>Surface patterns in missed opportunities to enable targeted coaching and skill development</p>
+                    </div>
+                </div>
+                <div class="goal-item">
+                    <div class="goal-number">3</div>
+                    <div class="goal-text">
+                        <strong>Build an Objection Library</strong>
+                        <p>Compile common owner objections to develop effective response frameworks</p>
+                    </div>
+                </div>
+                <div class="goal-item">
+                    <div class="goal-number">4</div>
+                    <div class="goal-text">
+                        <strong>Measure Value Delivery Impact</strong>
+                        <p>Correlate market insight delivery with evaluation conversion rates to refine outreach strategy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCalls">0</div>
+                <div class="stat-label">Total Calls</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value blue" id="valueRate">0%</div>
+                <div class="stat-label">Value Delivered</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="askRate">0%</div>
+                <div class="stat-label">Ask Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="evalRate">0%</div>
+                <div class="stat-label">Conversion</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="log">Log Call</button>
+            <button class="tab" data-tab="history">History</button>
+            <button class="tab" data-tab="insights">Insights</button>
+        </div>
+
+        <!-- LOG TAB -->
+        <div id="logTab">
+            <div class="form-section">
+                <div class="property-input">
+                    <input type="text" id="propertyName" placeholder="Property or owner name (optional)">
+                </div>
+                
+                <div class="form-title">Call Type</div>
+                <div class="button-group">
+                    <button class="option-btn" data-field="callType" data-value="prospecting">Prospecting</button>
+                    <button class="option-btn" data-field="callType" data-value="followup">Follow-up</button>
+                    <button class="option-btn" data-field="callType" data-value="inbound">Inbound</button>
+                </div>
+            </div>
+
+            <!-- VALUE SECTION -->
+            <div class="form-section" id="valueSection">
+                <div class="form-title">Did you deliver market insight or value?</div>
+                <div class="button-group">
+                    <button class="option-btn" data-field="providedValue" data-value="yes">Yes</button>
+                    <button class="option-btn" data-field="providedValue" data-value="no">No</button>
+                </div>
+            </div>
+
+            <div class="form-section hidden" id="valueTypeSection">
+                <div class="form-title">Type of value delivered</div>
+                <div class="button-group vertical">
+                    <button class="option-btn" data-field="valueType" data-value="comp">Comparable sale or market data</button>
+                    <button class="option-btn" data-field="valueType" data-value="market-insight">Cap rate or market trend insight</button>
+                    <button class="option-btn" data-field="valueType" data-value="asset-specific">Asset-specific observation</button>
+                    <button class="option-btn" data-field="valueType" data-value="offered-info">Offered to send materials</button>
+                    <button class="option-btn" data-field="valueType" data-value="other-value">Other</button>
+                </div>
+            </div>
+
+            <div class="form-section hidden" id="whyNoValueSection">
+                <div class="form-title">Reason value was not delivered</div>
+                <div class="button-group vertical">
+                    <button class="option-btn" data-field="whyNoValue" data-value="too-fast">Conversation moved too quickly</button>
+                    <button class="option-btn" data-field="whyNoValue" data-value="not-natural">No natural opening</button>
+                    <button class="option-btn" data-field="whyNoValue" data-value="forgot-value">Did not deploy prepared insight</button>
+                    <button class="option-btn" data-field="whyNoValue" data-value="no-prep">Relevant data not prepared</button>
+                    <button class="option-btn" data-field="whyNoValue" data-value="not-engaged">Owner not sufficiently engaged</button>
+                </div>
+            </div>
+
+            <!-- ASK SECTION -->
+            <div class="form-section hidden" id="appropriateSection">
+                <div class="section-header">Evaluation Request</div>
+                <div class="form-title">Was an evaluation request appropriate for this call?</div>
+                <div class="button-group">
+                    <button class="option-btn" data-field="appropriate" data-value="yes">Yes</button>
+                    <button class="option-btn" data-field="appropriate" data-value="no">No — execution/servicing only</button>
+                </div>
+            </div>
+
+            <div class="form-section hidden" id="didAskSection">
+                <div class="form-title">Was an evaluation requested?</div>
+                <div class="button-group">
+                    <button class="option-btn" data-field="didAsk" data-value="yes">Yes</button>
+                    <button class="option-btn" data-field="didAsk" data-value="no">No</button>
+                </div>
+            </div>
+
+            <div class="form-section hidden" id="whyNotSection">
+                <div class="form-title">Reason evaluation was not requested</div>
+                <div class="button-group vertical">
+                    <button class="option-btn" data-field="whyNot" data-value="forgot">Did not ask</button>
+                    <button class="option-btn" data-field="whyNot" data-value="awkward">Timing felt inappropriate</button>
+                    <button class="option-btn" data-field="whyNot" data-value="ended">Conversation ended before opportunity</button>
+                    <button class="option-btn" data-field="whyNot" data-value="timing">Rapport not established</button>
+                    <button class="option-btn" data-field="whyNot" data-value="other">Other</button>
+                </div>
+            </div>
+
+            <div class="form-section hidden" id="resultSection">
+                <div class="form-title">Outcome</div>
+                <div class="button-group vertical">
+                    <button class="option-btn" data-field="result" data-value="got-it">Evaluation secured ✓</button>
+                    <button class="option-btn" data-field="result" data-value="soft-no">Deferred — follow up scheduled</button>
+                    <button class="option-btn" data-field="result" data-value="thinking">Under consideration</button>
+                    <button class="option-btn" data-field="result" data-value="hard-no">Declined</button>
+                </div>
+            </div>
+
+            <div class="form-section hidden" id="notesSection">
+                <div class="form-title">Objection or notes (optional)</div>
+                <textarea id="notes" placeholder="Owner objection, relevant context, or observations..."></textarea>
+            </div>
+
+            <button class="submit-btn" id="submitBtn" disabled>Log Call</button>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div id="historyTab" class="hidden">
+            <div class="call-log" id="callLog">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📞</div>
+                    <p>No calls logged yet.<br>Start tracking to see your history.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- INSIGHTS TAB -->
+        <div id="insightsTab" class="hidden">
+            <div class="insights-section">
+                
+                <div class="insight-card highlight">
+                    <div class="insight-title">Value Delivery → Conversion Correlation</div>
+                    <div class="insight-comparison">
+                        <div class="comparison-item">
+                            <div class="comparison-label">Conversion WITH value</div>
+                            <div class="comparison-value blue" id="winRateWithValue">—</div>
+                        </div>
+                        <div class="comparison-item">
+                            <div class="comparison-label">Conversion WITHOUT value</div>
+                            <div class="comparison-value muted" id="winRateWithoutValue">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-title">Value Delivery Blockers</div>
+                    <ul class="insight-list" id="whyNoValueInsights">
+                        <li><span>No data yet</span><span class="insight-count">—</span></li>
+                    </ul>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-title">Value Type Effectiveness</div>
+                    <ul class="insight-list" id="valueTypeInsights">
+                        <li><span>No data yet</span><span class="insight-count">—</span></li>
+                    </ul>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-title">Evaluation Request Blockers</div>
+                    <ul class="insight-list" id="whyNotInsights">
+                        <li><span>No data yet</span><span class="insight-count">—</span></li>
+                    </ul>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-title">Request Outcomes</div>
+                    <ul class="insight-list" id="resultInsights">
+                        <li><span>No requests logged yet</span><span class="insight-count">—</span></li>
+                    </ul>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-title">Objection Library</div>
+                    <ul class="insight-list" id="objectionInsights">
+                        <li><span>No objections logged yet</span><span class="insight-count">—</span></li>
+                    </ul>
+                </div>
+
+                <button class="reset-btn" id="resetBtn">Reset All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle goals section
+        function toggleGoals() {
+            const content = document.getElementById('goalsContent');
+            const arrow = document.getElementById('goalsArrow');
+            content.classList.toggle('hidden');
+            arrow.classList.toggle('collapsed');
+        }
+
+        // State
+        let calls = JSON.parse(localStorage.getItem('evalTracker_calls_v2') || '[]');
+        let currentEntry = {};
+
+        // Elements
+        const tabs = document.querySelectorAll('.tab');
+        const logTab = document.getElementById('logTab');
+        const historyTab = document.getElementById('historyTab');
+        const insightsTab = document.getElementById('insightsTab');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Sections
+        const valueSection = document.getElementById('valueSection');
+        const valueTypeSection = document.getElementById('valueTypeSection');
+        const whyNoValueSection = document.getElementById('whyNoValueSection');
+        const appropriateSection = document.getElementById('appropriateSection');
+        const didAskSection = document.getElementById('didAskSection');
+        const whyNotSection = document.getElementById('whyNotSection');
+        const resultSection = document.getElementById('resultSection');
+        const notesSection = document.getElementById('notesSection');
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                logTab.classList.add('hidden');
+                historyTab.classList.add('hidden');
+                insightsTab.classList.add('hidden');
+                
+                const tabName = tab.dataset.tab;
+                if (tabName === 'log') logTab.classList.remove('hidden');
+                if (tabName === 'history') {
+                    historyTab.classList.remove('hidden');
+                    renderHistory();
+                }
+                if (tabName === 'insights') {
+                    insightsTab.classList.remove('hidden');
+                    renderInsights();
+                }
+            });
+        });
+
+        // Option button handling
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const field = btn.dataset.field;
+                const value = btn.dataset.value;
+                
+                // Deselect siblings
+                btn.parentElement.querySelectorAll('.option-btn').forEach(b => {
+                    b.classList.remove('selected', 'selected-blue', 'selected-warning', 'selected-danger');
+                });
+                
+                // Select this one with appropriate color
+                if (field === 'providedValue' && value === 'yes') {
+                    btn.classList.add('selected-blue');
+                } else if (field === 'valueType') {
+                    btn.classList.add('selected-blue');
+                } else if (field === 'providedValue' && value === 'no') {
+                    btn.classList.add('selected-warning');
+                } else if (field === 'didAsk' && value === 'no') {
+                    btn.classList.add('selected-warning');
+                } else if (field === 'result' && value === 'hard-no') {
+                    btn.classList.add('selected-danger');
+                } else if (field === 'whyNoValue' || field === 'whyNot') {
+                    btn.classList.add('selected-warning');
+                } else {
+                    btn.classList.add('selected');
+                }
+                
+                currentEntry[field] = value;
+                updateFormFlow();
+            });
+        });
+
+        function updateFormFlow() {
+            // Reset hidden sections
+            valueTypeSection.classList.add('hidden');
+            whyNoValueSection.classList.add('hidden');
+            appropriateSection.classList.add('hidden');
+            didAskSection.classList.add('hidden');
+            whyNotSection.classList.add('hidden');
+            resultSection.classList.add('hidden');
+            notesSection.classList.add('hidden');
+            
+            // Value flow
+            if (currentEntry.providedValue === 'yes') {
+                valueTypeSection.classList.remove('hidden');
+                if (currentEntry.valueType) {
+                    appropriateSection.classList.remove('hidden');
+                }
+            } else if (currentEntry.providedValue === 'no') {
+                whyNoValueSection.classList.remove('hidden');
+                if (currentEntry.whyNoValue) {
+                    appropriateSection.classList.remove('hidden');
+                }
+            }
+            
+            // Ask flow
+            if (currentEntry.appropriate === 'yes') {
+                didAskSection.classList.remove('hidden');
+                
+                if (currentEntry.didAsk === 'no') {
+                    whyNotSection.classList.remove('hidden');
+                    notesSection.classList.remove('hidden');
+                } else if (currentEntry.didAsk === 'yes') {
+                    resultSection.classList.remove('hidden');
+                    notesSection.classList.remove('hidden');
+                }
+            } else if (currentEntry.appropriate === 'no') {
+                notesSection.classList.remove('hidden');
+            }
+            
+            updateSubmitButton();
+        }
+
+        function updateSubmitButton() {
+            let canSubmit = false;
+            
+            if (!currentEntry.callType) {
+                canSubmit = false;
+            } else if (!currentEntry.providedValue) {
+                canSubmit = false;
+            } else if (currentEntry.providedValue === 'yes' && !currentEntry.valueType) {
+                canSubmit = false;
+            } else if (currentEntry.providedValue === 'no' && !currentEntry.whyNoValue) {
+                canSubmit = false;
+            } else if (!currentEntry.appropriate) {
+                canSubmit = false;
+            } else if (currentEntry.appropriate === 'no') {
+                canSubmit = true;
+            } else if (currentEntry.appropriate === 'yes') {
+                if (!currentEntry.didAsk) {
+                    canSubmit = false;
+                } else if (currentEntry.didAsk === 'no' && currentEntry.whyNot) {
+                    canSubmit = true;
+                } else if (currentEntry.didAsk === 'yes' && currentEntry.result) {
+                    canSubmit = true;
+                }
+            }
+            
+            submitBtn.disabled = !canSubmit;
+        }
+
+        // Submit
+        submitBtn.addEventListener('click', () => {
+            const entry = {
+                ...currentEntry,
+                id: Date.now(),
+                date: new Date().toISOString(),
+                propertyName: document.getElementById('propertyName').value,
+                notes: document.getElementById('notes').value
+            };
+            
+            calls.unshift(entry);
+            localStorage.setItem('evalTracker_calls_v2', JSON.stringify(calls));
+            
+            // Reset form
+            currentEntry = {};
+            document.querySelectorAll('.option-btn').forEach(b => {
+                b.classList.remove('selected', 'selected-blue', 'selected-warning', 'selected-danger');
+            });
+            document.getElementById('propertyName').value = '';
+            document.getElementById('notes').value = '';
+            valueTypeSection.classList.add('hidden');
+            whyNoValueSection.classList.add('hidden');
+            appropriateSection.classList.add('hidden');
+            didAskSection.classList.add('hidden');
+            whyNotSection.classList.add('hidden');
+            resultSection.classList.add('hidden');
+            notesSection.classList.add('hidden');
+            submitBtn.disabled = true;
+            
+            updateStats();
+            
+            // Brief feedback
+            submitBtn.textContent = 'Logged ✓';
+            setTimeout(() => {
+                submitBtn.textContent = 'Log Call';
+            }, 1500);
+        });
+
+        function updateStats() {
+            const total = calls.length;
+            const valueGiven = calls.filter(c => c.providedValue === 'yes').length;
+            const askable = calls.filter(c => c.appropriate === 'yes').length;
+            const asked = calls.filter(c => c.didAsk === 'yes').length;
+            const gotEval = calls.filter(c => c.result === 'got-it').length;
+            
+            document.getElementById('totalCalls').textContent = total;
+            document.getElementById('valueRate').textContent = total > 0 ? Math.round((valueGiven / total) * 100) + '%' : '0%';
+            document.getElementById('askRate').textContent = askable > 0 ? Math.round((asked / askable) * 100) + '%' : '0%';
+            document.getElementById('evalRate').textContent = asked > 0 ? Math.round((gotEval / asked) * 100) + '%' : '0%';
+            
+            // Color the ask rate based on performance
+            const askRateEl = document.getElementById('askRate');
+            const rate = askable > 0 ? (asked / askable) * 100 : 0;
+            if (rate < 30) {
+                askRateEl.classList.add('warning');
+            } else {
+                askRateEl.classList.remove('warning');
+            }
+
+            // Color the value rate
+            const valueRateEl = document.getElementById('valueRate');
+            const vRate = total > 0 ? (valueGiven / total) * 100 : 0;
+            if (vRate < 50) {
+                valueRateEl.classList.add('warning');
+                valueRateEl.classList.remove('blue');
+            } else {
+                valueRateEl.classList.remove('warning');
+                valueRateEl.classList.add('blue');
+            }
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('callLog');
+            
+            if (calls.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📞</div>
+                        <p>No calls logged yet.<br>Start tracking to see your history.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = calls.map(call => {
+                const date = new Date(call.date);
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                
+                let askResultClass = '';
+                let askResultText = '';
+                
+                if (call.appropriate === 'no') {
+                    askResultClass = 'not-appropriate';
+                    askResultText = 'Servicing only';
+                } else if (call.didAsk === 'no') {
+                    askResultClass = 'not-asked';
+                    askResultText = `Not requested: ${formatWhyNot(call.whyNot)}`;
+                } else if (call.result === 'got-it') {
+                    askResultClass = 'got-eval';
+                    askResultText = 'Evaluation secured';
+                } else {
+                    askResultClass = 'asked';
+                    askResultText = formatResult(call.result);
+                }
+
+                let valueTag = '';
+                if (call.providedValue === 'yes') {
+                    valueTag = `<span class="call-entry-result value-given">${formatValueType(call.valueType)}</span>`;
+                } else {
+                    valueTag = `<span class="call-entry-result no-value">No value delivered</span>`;
+                }
+                
+                return `
+                    <div class="call-entry">
+                        <div class="call-entry-header">
+                            <span class="call-entry-type">${call.propertyName || formatCallType(call.callType)}</span>
+                            <span class="call-entry-date">${dateStr} ${timeStr}</span>
+                        </div>
+                        <div class="call-entry-tags">
+                            ${valueTag}
+                            <span class="call-entry-result ${askResultClass}">${askResultText}</span>
+                        </div>
+                        ${call.notes ? `<div class="call-entry-notes">${call.notes}</div>` : ''}
+                        <button class="delete-btn" onclick="deleteCall(${call.id})">delete</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatCallType(type) {
+            const types = {
+                'prospecting': 'Prospecting',
+                'followup': 'Follow-up',
+                'inbound': 'Inbound'
+            };
+            return types[type] || type;
+        }
+
+        function formatValueType(type) {
+            const types = {
+                'comp': 'Comparable/market data',
+                'market-insight': 'Cap rate/trend insight',
+                'asset-specific': 'Asset-specific',
+                'offered-info': 'Offered materials',
+                'other-value': 'Other'
+            };
+            return types[type] || type;
+        }
+
+        function formatWhyNoValue(reason) {
+            const reasons = {
+                'too-fast': 'Conversation pace',
+                'not-natural': 'No natural opening',
+                'forgot-value': 'Not deployed',
+                'no-prep': 'Not prepared',
+                'not-engaged': 'Low engagement'
+            };
+            return reasons[reason] || reason;
+        }
+
+        function formatWhyNot(reason) {
+            const reasons = {
+                'forgot': 'Did not ask',
+                'awkward': 'Timing inappropriate',
+                'ended': 'No opportunity',
+                'timing': 'Rapport not established',
+                'other': 'Other'
+            };
+            return reasons[reason] || reason;
+        }
+
+        function formatResult(result) {
+            const results = {
+                'got-it': 'Evaluation secured',
+                'soft-no': 'Deferred — follow up',
+                'thinking': 'Under consideration',
+                'hard-no': 'Declined'
+            };
+            return results[result] || result;
+        }
+
+        window.deleteCall = function(id) {
+            if (confirm('Delete this call?')) {
+                calls = calls.filter(c => c.id !== id);
+                localStorage.setItem('evalTracker_calls_v2', JSON.stringify(calls));
+                renderHistory();
+                updateStats();
+            }
+        };
+
+        function renderInsights() {
+            // Value → Evaluation correlation
+            const askedWithValue = calls.filter(c => c.providedValue === 'yes' && c.didAsk === 'yes');
+            const askedWithoutValue = calls.filter(c => c.providedValue === 'no' && c.didAsk === 'yes');
+            const gotEvalWithValue = askedWithValue.filter(c => c.result === 'got-it').length;
+            const gotEvalWithoutValue = askedWithoutValue.filter(c => c.result === 'got-it').length;
+            
+            document.getElementById('winRateWithValue').textContent = askedWithValue.length > 0 
+                ? Math.round((gotEvalWithValue / askedWithValue.length) * 100) + '%' 
+                : '—';
+            document.getElementById('winRateWithoutValue').textContent = askedWithoutValue.length > 0 
+                ? Math.round((gotEvalWithoutValue / askedWithoutValue.length) * 100) + '%' 
+                : '—';
+
+            // Why not providing value
+            const whyNoValueCounts = {};
+            calls.filter(c => c.providedValue === 'no').forEach(c => {
+                whyNoValueCounts[c.whyNoValue] = (whyNoValueCounts[c.whyNoValue] || 0) + 1;
+            });
+            
+            const whyNoValueList = document.getElementById('whyNoValueInsights');
+            if (Object.keys(whyNoValueCounts).length > 0) {
+                whyNoValueList.innerHTML = Object.entries(whyNoValueCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([reason, count]) => `
+                        <li><span>${formatWhyNoValue(reason)}</span><span class="insight-count">${count}</span></li>
+                    `).join('');
+            } else {
+                whyNoValueList.innerHTML = '<li><span>No data yet</span><span class="insight-count">—</span></li>';
+            }
+
+            // Value types that work (show win rate by value type)
+            const valueTypeCounts = {};
+            const valueTypeWins = {};
+            calls.filter(c => c.providedValue === 'yes' && c.didAsk === 'yes').forEach(c => {
+                valueTypeCounts[c.valueType] = (valueTypeCounts[c.valueType] || 0) + 1;
+                if (c.result === 'got-it') {
+                    valueTypeWins[c.valueType] = (valueTypeWins[c.valueType] || 0) + 1;
+                }
+            });
+            
+            const valueTypeList = document.getElementById('valueTypeInsights');
+            if (Object.keys(valueTypeCounts).length > 0) {
+                valueTypeList.innerHTML = Object.entries(valueTypeCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([type, count]) => {
+                        const wins = valueTypeWins[type] || 0;
+                        const winRate = Math.round((wins / count) * 100);
+                        return `<li><span>${formatValueType(type)}</span><span class="insight-count">${winRate}% win (${count})</span></li>`;
+                    }).join('');
+            } else {
+                valueTypeList.innerHTML = '<li><span>No data yet</span><span class="insight-count">—</span></li>';
+            }
+
+            // Why not asking
+            const whyNotCounts = {};
+            calls.filter(c => c.didAsk === 'no' && c.appropriate === 'yes').forEach(c => {
+                whyNotCounts[c.whyNot] = (whyNotCounts[c.whyNot] || 0) + 1;
+            });
+            
+            const whyNotList = document.getElementById('whyNotInsights');
+            if (Object.keys(whyNotCounts).length > 0) {
+                whyNotList.innerHTML = Object.entries(whyNotCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([reason, count]) => `
+                        <li><span>${formatWhyNot(reason)}</span><span class="insight-count">${count}</span></li>
+                    `).join('');
+            } else {
+                whyNotList.innerHTML = '<li><span>No data yet</span><span class="insight-count">—</span></li>';
+            }
+            
+            // Results when asking
+            const resultCounts = {};
+            calls.filter(c => c.didAsk === 'yes').forEach(c => {
+                resultCounts[c.result] = (resultCounts[c.result] || 0) + 1;
+            });
+            
+            const resultList = document.getElementById('resultInsights');
+            if (Object.keys(resultCounts).length > 0) {
+                resultList.innerHTML = Object.entries(resultCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([result, count]) => `
+                        <li><span>${formatResult(result)}</span><span class="insight-count">${count}</span></li>
+                    `).join('');
+            } else {
+                resultList.innerHTML = '<li><span>No asks logged yet</span><span class="insight-count">—</span></li>';
+            }
+            
+            // Common objections (from notes)
+            const notesWithContent = calls.filter(c => c.notes && c.notes.trim().length > 0);
+            const objectionList = document.getElementById('objectionInsights');
+            if (notesWithContent.length > 0) {
+                objectionList.innerHTML = notesWithContent.slice(0, 5).map(c => `
+                    <li><span>"${c.notes.substring(0, 50)}${c.notes.length > 50 ? '...' : ''}"</span></li>
+                `).join('');
+            } else {
+                objectionList.innerHTML = '<li><span>No objections logged yet</span><span class="insight-count">—</span></li>';
+            }
+        }
+
+        // Reset
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (confirm('This will delete all your call data. Are you sure?')) {
+                calls = [];
+                localStorage.setItem('evalTracker_calls_v2', JSON.stringify(calls));
+                updateStats();
+                renderInsights();
+            }
+        });
+
+        // Initialize
+        updateStats();
+    </script>
+</body>
+</html>
